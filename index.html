@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Gra w dodawanie</title>
+  <title>Gra w matematykę</title>
   <style>
     body {
       margin: 0;
@@ -71,13 +71,36 @@
     }
 
     #timer {
-      font-size: 20px;
-      margin-top: 15px;
-      color: red;
-      font-weight: bold;
+      margin-top: 20px;
+      position: relative;
+      height: 25px;
+      width: 100%;
+      background: #ddd;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
     }
 
-    /* MODAL */
+    #timerBar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #00ff73, #ff9a00, #ff0000);
+      transition: width 1s linear;
+    }
+
+    #timerText {
+      position: absolute;
+      width: 100%;
+      top: 0;
+      text-align: center;
+      line-height: 25px;
+      font-weight: bold;
+      color: #000;
+    }
+
     .modal {
       position: fixed;
       top: 0; left: 0;
@@ -124,7 +147,7 @@
 </head>
 <body>
   <div class="card" id="gameCard">
-    <h1>Gra w dodawanie</h1>
+    <h1>Gra w matematykę</h1>
     <button id="startBtn" onclick="pokazPrzyklad()">Start</button>
     <div id="example"></div>
 
@@ -132,7 +155,10 @@
       <input type="number" id="answer" placeholder="Odpowiedź">
       <br>
       <button onclick="sprawdz()">Sprawdź</button>
-      <div id="timer"></div>
+      <div id="timer">
+        <div id="timerBar"></div>
+        <div id="timerText">30s</div>
+      </div>
     </div>
   </div>
 
@@ -145,27 +171,55 @@
   </div>
 
   <script>
-    let liczba1, liczba2;
+    let liczba1, liczba2, operator;
     let timerInterval;
-    let czas = 60;
+    let czas;
+    let maxCzas;
 
     function pokazPrzyklad() {
-      liczba1 = Math.floor(Math.random() * 300) + 1;
-      liczba2 = Math.floor(Math.random() * 300) + 1;
+      // Генерация оператора с ровной вероятностью 25% для каждого
+      const los = Math.random();
+      if (los < 0.25) operator = '+';
+      else if (los < 0.5) operator = '-';
+      else if (los < 0.75) operator = '×';
+      else operator = '÷';
 
-      document.getElementById("example").innerText = liczba1 + " + " + liczba2 + " = ?";
+      // Генерация чисел в зависимости от типа операции
+      if (operator === '+') {
+        liczba1 = Math.floor(Math.random() * 100) + 1;
+        liczba2 = Math.floor(Math.random() * 100) + 1;
+        maxCzas = 30;
+      } 
+      else if (operator === '-') {
+        liczba1 = Math.floor(Math.random() * 100) + 1;
+        liczba2 = Math.floor(Math.random() * 100) + 1;
+        if (liczba2 > liczba1) [liczba1, liczba2] = [liczba2, liczba1];
+        maxCzas = 30;
+      } 
+      else if (operator === '×') {
+        liczba1 = Math.floor(Math.random() * 10) + 1;
+        liczba2 = Math.floor(Math.random() * 10) + 1;
+        maxCzas = 30;
+      } 
+      else if (operator === '÷') {
+        liczba2 = Math.floor(Math.random() * 9) + 2;
+        let wynik = Math.floor(Math.random() * 10) + 1;
+        liczba1 = liczba2 * wynik;
+        maxCzas = 45;
+      }
+
+      document.getElementById("example").innerText = `${liczba1} ${operator} ${liczba2} = ?`;
       document.getElementById("answerBox").style.display = "block";
       document.getElementById("startBtn").style.display = "none";
       document.getElementById("answer").value = "";
       document.getElementById("answer").focus();
 
-      // запускаем таймер
-      czas = 60;
-      document.getElementById("timer").innerText = "⏳ " + czas + "s";
+      czas = maxCzas;
+      updateTimer();
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         czas--;
-        document.getElementById("timer").innerText = "⏳ " + czas + "s";
+        updateTimer();
         if (czas <= 0) {
           clearInterval(timerInterval);
           pokazModal("⏰ Nie zdążyłeś!");
@@ -173,10 +227,34 @@
       }, 1000);
     }
 
+    function updateTimer() {
+      const bar = document.getElementById("timerBar");
+      const text = document.getElementById("timerText");
+      const percent = (czas / maxCzas) * 100;
+      bar.style.width = percent + "%";
+      text.textContent = czas + "s";
+    }
+
     function sprawdz() {
+      let odpInput = document.getElementById("answer");
+      let odp = odpInput.value.trim();
+
+      if (odp === "") {
+        pokazModal("⚠️ Wpisz odpowiedź!");
+        return;
+      }
+
       clearInterval(timerInterval);
-      let odp = parseInt(document.getElementById("answer").value);
-      let wynik = liczba1 + liczba2;
+      odp = parseFloat(odp);
+      let wynik;
+
+      switch (operator) {
+        case '+': wynik = liczba1 + liczba2; break;
+        case '-': wynik = liczba1 - liczba2; break;
+        case '×': wynik = liczba1 * liczba2; break;
+        case '÷': wynik = liczba1 / liczba2; break;
+      }
+
       if (odp === wynik) {
         pokazModal("✅ Poprawnie!<br>+1 banan 🍌");
       } else {
@@ -197,14 +275,12 @@
       modal.classList.remove("show");
       setTimeout(() => {
         modal.style.display = "none";
-        // возвращаем меню
         document.getElementById("answerBox").style.display = "none";
         document.getElementById("example").innerText = "";
         document.getElementById("startBtn").style.display = "inline-block";
       }, 300);
     }
 
-    // Enter как "Sprawdź"
     document.addEventListener("keydown", function(event) {
       if (event.key === "Enter" && document.getElementById("answerBox").style.display === "block") {
         sprawdz();
