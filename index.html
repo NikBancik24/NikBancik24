@@ -1,9 +1,16 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
   <title>Gra w matematykę</title>
+
+  <!-- ============================================ -->
+  <!-- Стили CSS для всей игры -->
+  <!-- ============================================ -->
   <style>
+    /* ============================================ */
+    /* Сброс отступов и базовые стили body */
+    /* ============================================ */
     body {
       margin: 0;
       padding: 0;
@@ -16,6 +23,9 @@
       color: #fff;
     }
 
+    /* ============================================ */
+    /* Карточка игры */
+    /* ============================================ */
     .card {
       background: #f9f9f9;
       padding: 40px;
@@ -26,12 +36,14 @@
       color: #111;
     }
 
+    /* Заголовок */
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       font-size: 26px;
       color: #222;
     }
 
+    /* Кнопки */
     button {
       padding: 12px 25px;
       font-size: 18px;
@@ -51,6 +63,7 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.5);
     }
 
+    /* Пример задачи */
     #example {
       margin: 20px 0;
       font-size: 28px;
@@ -58,6 +71,7 @@
       color: #000;
     }
 
+    /* Поле ввода ответа */
     input {
       padding: 10px;
       font-size: 20px;
@@ -70,6 +84,7 @@
       box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
     }
 
+    /* Таймер */
     #timer {
       margin-top: 20px;
       position: relative;
@@ -101,6 +116,9 @@
       color: #000;
     }
 
+    /* ============================================ */
+    /* Модальные окна */
+    /* ============================================ */
     .modal {
       position: fixed;
       top: 0; left: 0;
@@ -123,6 +141,7 @@
       transform: scale(0.7);
       opacity: 0;
       transition: all 0.3s ease-in-out;
+      max-width: 90%;
     }
 
     .modal.show .modal-content {
@@ -143,26 +162,167 @@
     .close-btn:hover {
       background: #444;
     }
+
+    /* ============================================ */
+    /* Стили списка игроков */
+    /* ============================================ */
+    .players-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .player-pill {
+      background: #eee;
+      color: #111;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .player-pill.selected {
+      border-color: #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .player-info-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .small-btn {
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      margin: 0 6px;
+    }
+
+    .color-red { background: #b22222; }
+    .color-blue { background: #1e90ff; }
+
+    /* ============================================ */
+    /* Registration form styles */
+    /* ============================================ */
+    .reg-input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 60%;
+      margin-right: 6px;
+    }
+
+    .note {
+      font-size: 13px;
+      font-weight: normal;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
   </style>
 </head>
+
 <body>
+
+  <!-- ============================================ -->
+  <!-- Главная карточка игры -->
+  <!-- ============================================ -->
   <div class="card" id="gameCard">
+
     <h1>Gra w matematykę</h1>
-    <button id="startBtn" onclick="pokazPrzyklad()">Start</button>
+
+    <!-- Статус игроков -->
+    <div id="playersStatus" style="margin-bottom:10px;">
+
+      <div id="selectedPlayerText" style="font-weight:bold; color:#333; margin-bottom:6px;">
+        Brak wybranego gracza
+      </div>
+
+      <div class="player-info-row" id="playersRow">
+        <!-- Здесь будут "пиллы" игроков с бананами -->
+      </div>
+
+    </div>
+
+    <!-- Кнопки управления -->
+    <div>
+      <button id="startBtn" onclick="onStartClick()">Start</button>
+      <button id="chooseBtn" class="small-btn" onclick="otworzWybieranie()">Wybierz gracza</button>
+      <button id="colorBtn" class="small-btn" onclick="otworzKolory()">Kolory (+3 / -3)</button>
+    </div>
+
+    <!-- Пример задачи -->
     <div id="example"></div>
 
+    <!-- Поле ввода ответа -->
     <div id="answerBox" style="display:none;">
       <input type="number" id="answer" placeholder="Odpowiedź">
       <br>
       <button onclick="sprawdz()">Sprawdź</button>
+
+      <!-- Таймер -->
       <div id="timer">
         <div id="timerBar"></div>
         <div id="timerText">30s</div>
       </div>
     </div>
+
   </div>
 
-  <!-- MODAL -->
+  <!-- ============================================ -->
+  <!-- Модальное окно регистрации -->
+  <!-- ============================================ -->
+  <div id="regModal" class="modal" style="display:flex;">
+    <div class="modal-content" id="regContent">
+      <div style="text-align:left;">
+
+        <h2 style="margin-top:0;">Rejestracja graczy</h2>
+
+        <p class="note">
+          Zasady: minimalnie <strong>2</strong> graczy, maksymalnie <strong>6</strong>. 
+          Każdy zaczyna z <strong>3 bananami</strong>. 
+          Podczas gry: poprawna odpowiedź = <strong>+1</strong> banan, błędna = <strong>−1</strong>. 
+          Przed rundą możesz wybrać kolor: 
+          <span style="color:#fff; background:#b22222; padding:2px 6px; border-radius:6px;">czerwony</span> = +3, 
+          <span style="color:#fff; background:#1e90ff; padding:2px 6px; border-radius:6px;">niebieski</span> = −3.
+        </p>
+
+        <div style="margin-top:8px;">
+          <input id="newPlayerName" class="reg-input" placeholder="Imię gracza (np. Nikita)">
+          <button id="addPlayerBtn" onclick="dodajGracza()" style="padding:10px 12px; border-radius:8px;">Dodaj</button>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div style="font-weight:bold; margin-bottom:6px;">Zarejestrowani gracze:</div>
+          <div id="regPlayersList" class="players-list"></div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; justify-content:center; gap:10px;">
+          <button id="finishRegBtn" class="close-btn" onclick="zakonczRejestracje()" disabled>Zakończ rejestrację</button>
+        </div>
+
+        <p style="font-size:13px; margin-top:8px; color:#333;">
+          (Możesz dodać imiona jeden po drugim. Minimum 2, maksimum 6.)
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- Общий модал для сообщений -->
+  <!-- ============================================ -->
   <div id="modal" class="modal">
     <div class="modal-content" id="modalContent">
       <p></p>
@@ -170,37 +330,286 @@
     </div>
   </div>
 
+  <!-- ============================================ -->
+  <!-- Модал выбора игрока -->
+  <!-- ============================================ -->
+  <div id="chooseModal" class="modal">
+    <div class="modal-content" style="max-width:420px;">
+      <h3>Wybierz gracza</h3>
+      <div id="choosePlayers" class="players-list" style="margin-top:10px;"></div>
+      <div style="margin-top:12px;">
+        <button class="close-btn" onclick="zamknijWybieranie()">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- Модал выбора цвета бананов -->
+  <!-- ============================================ -->
+  <div id="colorModal" class="modal">
+    <div class="modal-content" style="max-width:420px;">
+      <h3>Wybierz kolor dla bieżącego gracza</h3>
+      <div style="margin-top:12px;">
+        <button class="close-btn color-red" onclick="applyColor('red')" style="margin-right:8px;">Czerwony (+3)</button>
+        <button class="close-btn color-blue" onclick="applyColor('blue')">Niebieski (−3)</button>
+      </div>
+      <p style="font-size:14px; margin-top:10px;">
+        (Zmiana zastosuje się od razu do wybranego gracza)
+      </p>
+      <div style="margin-top:12px;">
+        <button class="close-btn" onclick="zamknijKolory()">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- Скрипты JavaScript -->
+  <!-- ============================================ -->
   <script>
+    // ============================================ //
+    // Данные игроков
+    // ============================================ //
+    let players = []; // {name: 'Nikita', bananas: 3}
+    let selectedIndex = -1;
+
+    // ============================================ //
+    // Переменные таймера и примеров
+    // ============================================ //
     let liczba1, liczba2, operator;
     let timerInterval;
     let czas;
     let maxCzas;
 
+    // ============================================ //
+    // --- Функции регистрации ---
+    // ============================================ //
+    function dodajGracza() {
+      const input = document.getElementById('newPlayerName');
+      const name = input.value.trim();
+
+      if (!name) {
+        pokazModal("⚠️ Podaj imię gracza!");
+        return;
+      }
+
+      if (players.length >= 6) {
+        pokazModal("⚠️ Maksymalnie 6 graczy!");
+        return;
+      }
+
+      if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        pokazModal("⚠️ To imię już zostało dodane!");
+        return;
+      }
+
+      players.push({name: name, bananas: 3});
+      input.value = "";
+      odswiezListeRejestracji();
+      odswiezPlayersRow();
+      checkFinishBtn();
+    }
+
+    function odswiezListeRejestracji() {
+      const list = document.getElementById('regPlayersList');
+      list.innerHTML = "";
+      players.forEach((p, i) => {
+        const pill = document.createElement('div');
+        pill.className = 'player-pill';
+        pill.textContent = p.name + " (" + p.bananas + "🍌)";
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = "x";
+        removeBtn.style.marginLeft = "8px";
+        removeBtn.style.fontSize = "12px";
+        removeBtn.style.padding = "2px 6px";
+        removeBtn.style.borderRadius = "8px";
+
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          players.splice(i,1);
+          if (selectedIndex === i) selectedIndex = -1;
+          else if (selectedIndex > i) selectedIndex--;
+          odswiezListeRejestracji();
+          odswiezPlayersRow();
+          checkFinishBtn();
+        };
+
+        pill.appendChild(removeBtn);
+        list.appendChild(pill);
+      });
+    }
+
+    function checkFinishBtn() {
+      const btn = document.getElementById('finishRegBtn');
+      btn.disabled = players.length < 2;
+    }
+
+    function zakonczRejestracje() {
+      if (players.length < 2) {
+        pokazModal("⚠️ Potrzeba co najmniej 2 graczy.");
+        return;
+      }
+      document.getElementById('regModal').style.display = 'none';
+      odswiezPlayersRow();
+      pokazModal("Rejestracja zakończona. Wybierz gracza i naciśnij Start.");
+    }
+
+    // ============================================ //
+    // --- Отображение игроков в ряду ---
+    // ============================================ //
+    function odswiezPlayersRow() {
+      const row = document.getElementById('playersRow');
+      row.innerHTML = "";
+      players.forEach((p, i) => {
+        const pill = document.createElement('div');
+        pill.className = 'player-pill' + (i === selectedIndex ? ' selected' : '');
+        pill.innerHTML = `<span style="font-weight:bold">${p.name}</span> <span style="background:#fff; padding:2px 6px; border-radius:8px;">${p.bananas}🍌</span>`;
+        pill.onclick = () => {
+          selectedIndex = i;
+          odswiezSelectedText();
+          odswiezPlayersRow();
+        };
+        row.appendChild(pill);
+      });
+      odswiezSelectedText();
+    }
+
+    function odswiezSelectedText() {
+      const t = document.getElementById('selectedPlayerText');
+      if (selectedIndex === -1) t.textContent = 'Brak wybranego gracza';
+      else t.textContent = 'Aktualny gracz: ' + players[selectedIndex].name + ' — ' + players[selectedIndex].bananas + '🍌';
+    }
+
+    // ============================================ //
+    // --- Модальное окно выбора игрока ---
+    // ============================================ //
+    function otworzWybieranie() {
+      if (players.length === 0) {
+        pokazModal("Brak zarejestrowanych graczy. Najpierw zarejestruj.");
+        return;
+      }
+      const modal = document.getElementById('chooseModal');
+      const container = document.getElementById('choosePlayers');
+      container.innerHTML = "";
+      players.forEach((p, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'player-pill' + (i === selectedIndex ? ' selected' : '');
+        btn.textContent = p.name + " (" + p.bananas + "🍌)";
+        btn.onclick = () => {
+          selectedIndex = i;
+          odswiezPlayersRow();
+          zamknijWybieranie();
+        };
+        container.appendChild(btn);
+      });
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function zamknijWybieranie() {
+      const modal = document.getElementById('chooseModal');
+      modal.classList.remove('show');
+      setTimeout(() => modal.style.display = 'none', 250);
+    }
+
+    // ============================================ //
+    // --- Модальное окно цветов ---
+    // ============================================ //
+    function otworzKolory() {
+      if (players.length === 0) {
+        pokazModal("Brak zarejestrowanych graczy.");
+        return;
+      }
+      if (selectedIndex === -1) {
+        pokazModal("Wybierz gracza najpierw.");
+        return;
+      }
+      const modal = document.getElementById('colorModal');
+      modal.style.display = 'flex';
+      setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function zamknijKolory() {
+      const modal = document.getElementById('colorModal');
+      modal.classList.remove('show');
+      setTimeout(() => modal.style.display = 'none', 250);
+    }
+
+    function applyColor(color) {
+      if (selectedIndex === -1) {
+        pokazModal("Wybierz gracza najpierw.");
+        return;
+      }
+      if (color === 'red') {
+        players[selectedIndex].bananas += 3;
+        pokazModal("Czerwony: +3 banany dla " + players[selectedIndex].name);
+      } else {
+        players[selectedIndex].bananas -= 3;
+        pokazModal("Niebieski: −3 banany dla " + players[selectedIndex].name);
+      }
+      odswiezPlayersRow();
+      zamknijKolory();
+    }
+
+    // ============================================ //
+    // --- Общий модал для сообщений ---
+    // ============================================ //
+    function pokazModal(msg) {
+      let modal = document.getElementById("modal");
+      let modalContent = document.getElementById("modalContent").querySelector("p");
+      modalContent.innerHTML = msg;
+      modal.style.display = "flex";
+      setTimeout(() => modal.classList.add("show"), 10);
+    }
+
+    function zamknijModal() {
+      let modal = document.getElementById("modal");
+      modal.classList.remove("show");
+      setTimeout(() => {
+        modal.style.display = "none";
+      }, 300);
+    }
+
+    // ============================================ //
+    // --- Логика игры ---
+    // ============================================ //
+    function onStartClick() {
+      if (players.length < 2) {
+        document.getElementById('regModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('regModal').classList.add('show'), 10);
+        pokazModal("Najpierw zarejestruj co najmniej 2 graczy.");
+        return;
+      }
+      if (selectedIndex === -1) {
+        otworzWybieranie();
+        return;
+      }
+      pokazPrzyklad();
+    }
+
     function pokazPrzyklad() {
-      // Генерация оператора с ровной вероятностью 25% для каждого
       const los = Math.random();
       if (los < 0.25) operator = '+';
       else if (los < 0.5) operator = '-';
       else if (los < 0.75) operator = '×';
       else operator = '÷';
 
-      // Генерация чисел в зависимости от типа операции
       if (operator === '+') {
         liczba1 = Math.floor(Math.random() * 100) + 1;
         liczba2 = Math.floor(Math.random() * 100) + 1;
         maxCzas = 30;
-      } 
+      }
       else if (operator === '-') {
         liczba1 = Math.floor(Math.random() * 100) + 1;
         liczba2 = Math.floor(Math.random() * 100) + 1;
         if (liczba2 > liczba1) [liczba1, liczba2] = [liczba2, liczba1];
         maxCzas = 30;
-      } 
+      }
       else if (operator === '×') {
         liczba1 = Math.floor(Math.random() * 10) + 1;
         liczba2 = Math.floor(Math.random() * 10) + 1;
         maxCzas = 30;
-      } 
+      }
       else if (operator === '÷') {
         liczba2 = Math.floor(Math.random() * 9) + 2;
         let wynik = Math.floor(Math.random() * 10) + 1;
@@ -210,7 +619,6 @@
 
       document.getElementById("example").innerText = `${liczba1} ${operator} ${liczba2} = ?`;
       document.getElementById("answerBox").style.display = "block";
-      document.getElementById("startBtn").style.display = "none";
       document.getElementById("answer").value = "";
       document.getElementById("answer").focus();
 
@@ -223,6 +631,8 @@
         if (czas <= 0) {
           clearInterval(timerInterval);
           pokazModal("⏰ Nie zdążyłeś!");
+          document.getElementById("answerBox").style.display = "none";
+          document.getElementById("example").innerText = "";
         }
       }, 1000);
     }
@@ -245,7 +655,7 @@
       }
 
       clearInterval(timerInterval);
-      odp = parseFloat(odp);
+      odp = Number(odp);
       let wynik;
 
       switch (operator) {
@@ -255,37 +665,38 @@
         case '÷': wynik = liczba1 / liczba2; break;
       }
 
-      if (odp === wynik) {
+      let correct = false;
+      if (operator === '÷') correct = Math.abs(odp - wynik) < 1e-9;
+      else correct = odp === wynik;
+
+      if (correct) {
+        players[selectedIndex].bananas += 1;
+        odswiezPlayersRow();
         pokazModal("✅ Poprawnie!<br>+1 banan 🍌");
       } else {
+        players[selectedIndex].bananas -= 1;
+        odswiezPlayersRow();
         pokazModal("❌ Źle!<br>-1 banan 🍌");
       }
+
+      document.getElementById("answerBox").style.display = "none";
+      document.getElementById("example").innerText = "";
     }
 
-    function pokazModal(msg) {
-      let modal = document.getElementById("modal");
-      let modalContent = document.getElementById("modalContent").querySelector("p");
-      modalContent.innerHTML = msg;
-      modal.style.display = "flex";
-      setTimeout(() => modal.classList.add("show"), 10);
-    }
-
-    function zamknijModal() {
-      let modal = document.getElementById("modal");
-      modal.classList.remove("show");
-      setTimeout(() => {
-        modal.style.display = "none";
-        document.getElementById("answerBox").style.display = "none";
-        document.getElementById("example").innerText = "";
-        document.getElementById("startBtn").style.display = "inline-block";
-      }, 300);
-    }
-
+    // Обработка Enter
     document.addEventListener("keydown", function(event) {
       if (event.key === "Enter" && document.getElementById("answerBox").style.display === "block") {
         sprawdz();
       }
     });
+
+    // Инициализация
+    window.addEventListener('load', () => {
+      const reg = document.getElementById('regModal');
+      setTimeout(() => reg.classList.add('show'), 10);
+    });
+
   </script>
+
 </body>
 </html>
