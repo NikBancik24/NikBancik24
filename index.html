@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
@@ -230,6 +230,20 @@
       margin-bottom: 10px;
     }
 
+    /* ============================================ */
+    /* Мобильная вертикальная регистрация */
+    /* ============================================ */
+    @media (max-width: 600px) {
+      #regPlayersList {
+        flex-direction: column;
+        gap: 6px;
+      }
+      .reg-input {
+        width: 80%;
+        margin-right: 0;
+      }
+    }
+
   </style>
 </head>
 
@@ -291,11 +305,6 @@
 
         <p class="note">
           Zasady: minimalnie <strong>2</strong> graczy, maksymalnie <strong>6</strong>. 
-          Każdy zaczyna z <strong>3 bananami</strong>. 
-          Podczas gry: poprawna odpowiedź = <strong>+1</strong> banan, błędna = <strong>−1</strong>. 
-          Przed rundą możesz wybrać kolor: 
-          <span style="color:#fff; background:#b22222; padding:2px 6px; border-radius:6px;">czerwony</span> = +3, 
-          <span style="color:#fff; background:#1e90ff; padding:2px 6px; border-radius:6px;">niebieski</span> = −3.
         </p>
 
         <div style="margin-top:8px;">
@@ -311,10 +320,6 @@
         <div style="margin-top:14px; display:flex; justify-content:center; gap:10px;">
           <button id="finishRegBtn" class="close-btn" onclick="zakonczRejestracje()" disabled>Zakończ rejestrację</button>
         </div>
-
-        <p style="font-size:13px; margin-top:8px; color:#333;">
-          (Możesz dodać imiona jeden po drugim. Minimum 2, maksimum 6.)
-        </p>
 
       </div>
     </div>
